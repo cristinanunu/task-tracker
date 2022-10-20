@@ -48,7 +48,7 @@
         //if the validation passes we construct a new task
         const newTask = {
           //creating id
-          id: Math.floor(Math.random() * 100),
+          // id: Math.floor(Math.random() * 100),
           text: this.text,
           day: this.day,
           reminder: this.reminder
