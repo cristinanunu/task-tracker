@@ -35,77 +35,59 @@ export default {
   //function that return the object tasks
   data() {
     return {
-      tasks: [],
+      tasks: [
+    {
+      "id": 1,
+      "text": "Meeting at school",
+      "day": "March 3rd at 1:30pm",
+      "reminder": false
+    },
+    {
+      "id": 2,
+      "text": "Doctor App.",
+      "day": "March 1st at 1:30pm",
+      "reminder": true
+    }
+      ],
       //we show the form component based on this true or false
       showAddTask: false
     }
   },
-  //the filter method takes in a function, it will loop through and give back task.id that is different than the id passed at deleteTask,
-  //but we are not persisting the delete because not working with api and external server
   methods: {
     //creating a function to be able to toggle the add task button(to open and close the form), setting the property of showAddTask to the opposite
     toggleAddTask() {
       this.showAddTask = !this.showAddTask
     },
-    //to add a task we set it to an array where we spread around the current tasks and ad a new one into it
-    //fetching task to Post the new task
-    async addTask(task) {
-      const res = await fetch('api/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify(task)
-      })
-
-      const data = await res.json()
-      this.tasks = [...this.tasks, data]
+    addTask(task) {
+      //in the new array we spread the old tasks and add the new task
+      this.tasks = [...this.tasks, task]
+      this.saveTasks()
     },
-    async deleteTask(id) {
-      //adding a confirmation messageif to delete
+    deleteTask(id) {
+      //adding a confirmation message if to delete
       if(confirm('Are you sure?')) {
-        const res = await fetch(`api/tasks/${id}`, {
-          method: 'DELETE'
-        })
-        res.status === 200 ? (this.tasks = this.tasks.filter((task) => task.id !== id)) : alert('Error deleting task')
-
+        this.tasks = this.tasks.filter((task) => task.id !== id)
+        this.saveTasks()
       }
     },
-    async toggleReminder(id) {
-      const taskToToggle = await this.fetchTask(id)
-      const updTask = {...taskToToggle, reminder: !taskToToggle.reminder}
-
-      const res = await fetch(`api/tasks/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-type': 'application/json'
-        },
-        body: JSON.stringify(updTask)
-      })
-
-      const data = await res.json()
+    toggleReminder(id) {
       //updating a task reminder from true to false or opposite, we map through the entire array,
-      //we put an arrow function and fo each task we check if the task.id === to id passed in and to give the opposite of the current task, if false to give us true(if not marked as reminder to mark it as reminder)
-      this.tasks = this.tasks.map((task) => task.id === id ? { ...task, reminder: data.reminder } : task
-      )
+      //we put an arrow function and for each task we check if the task.id === to id passed in and to give the opposite of the current task, if false to give us true(if not marked as reminder to mark it as reminder)
+      this.tasks = this.tasks.map((task) => task.id === id ? { ...task, reminder: !task.reminder} : task)
+      this.saveTasks()
     },
-    //adding a json server to run on port 5000 to and watch the db.json file(the fake api where we store the data-tasks), to run this do npm run backend
-    //fetching data from backend
-    async fetchTasks() {
-      const res = await fetch('api/tasks')
-      const data = await res.json()
-      return data
-    },
-    //fetching a specific task if we want to update it
-    async fetchTask(id) {
-      const res = await fetch(`api/tasks/${id}`)
-      const data = await res.json()
-      return data
-    },
+    saveTasks() {
+      const parsed = JSON.stringify(this.tasks);
+      localStorage.setItem('tasks', parsed);
+    }
   },
-  //creating a lifecycle method(check what it does) then create a Tasks component to display the tasks
-  async created() {
-    this.tasks = await this.fetchTasks()
+  //creating a lifecycle method(check what it does)
+  created() {
+    //localStorage.getItem returns null if the key 'tasks' does not exist, so we check that storedTasks is different than null
+    const storedTasks = localStorage.getItem('tasks');
+    if (storedTasks !== null) {
+      this.tasks = JSON.parse(storedTasks);
+    }
   }
 }
 </script>
